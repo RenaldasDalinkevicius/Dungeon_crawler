@@ -19,7 +19,7 @@ export default function Stun(props) {
         props.stunned&&stunState.stunDuration?setStunState(prevStun => ({
             ...prevStun,
             stunDuration: stunState.stunDuration-1
-        })):props.unStun
+        })):props.unStun()
     }, [props.monsterHealth])
     useEffect(() => {
         if (props.stunned) {
