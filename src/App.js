@@ -38,13 +38,16 @@ export default function App() {
     const [monster, setMonster] = useState({
         isAlive: true,
         monsterTurn: false,
-        randomNum: 0,
-        stunned: false
+        stunned: false,
+        health: monsterArray[(0)].health,
+        attack: randomNumber(monsterArray[(0)].lowDmg,monsterArray[(0)].bigDmg),
+        monsterImg: monsterArray[(0)].url,
+        monsterWeapon: monsterArray[(0)].weapon,
+        monsterName: monsterArray[(0)].name,
+        weaponUrl: monsterArray[(0)].wepUrl,
     })
     const [buttonDisable, setButtonDisable] = useState(false)
     const [shop, setShop] = useState(false)
-    const [fightAnimation, setFightAnimation] = useState(0)
-    const [monsterFightAnimation, setMonsterFightAnimation] = useState(0)
     const [defeated, setDefeated] = useState(0)
     // When to spawn boss (default 10 enemy defeats)
     const [bossSpawn, setBossSpawn] = useState(10)
@@ -77,7 +80,6 @@ export default function App() {
             }))
         }
         else if (monster.monsterTurn && monster.isAlive && !monster.stunned) {
-            setMonsterFightAnimation(1)
             setHero(prevHero => ({
                 ...prevHero,
                 health: hero.health-monster.attack
@@ -89,15 +91,15 @@ export default function App() {
         }
     },[monster.health])
     // Functions
-    function spawnMonster(b) {
+    function spawnMonster(b, r) {
         setMonster(prevMonster => ({
             ...prevMonster,
-            health: b[(monster.randomNum)].health,
-            attack: randomNumber(b[(monster.randomNum)].lowDmg,b[(monster.randomNum)].bigDmg),
-            monsterImg: b[(monster.randomNum)].url,
-            monsterWeapon: b[(monster.randomNum)].weapon,
-            monsterName: b[(monster.randomNum)].name,
-            weaponUrl: b[(monster.randomNum)].wepUrl,
+            health: b[(r)].health,
+            attack: randomNumber(b[(r)].lowDmg,b[(r)].bigDmg),
+            monsterImg: b[(r)].url,
+            monsterWeapon: b[(r)].weapon,
+            monsterName: b[(r)].name,
+            weaponUrl: b[(r)].wepUrl,
             isAlive: true,
             monsterTurn: false,
             stunned: false
@@ -142,16 +144,8 @@ export default function App() {
             }))
         }
     }
-    useEffect(() => {
-        // after randomNum is changed, sometimes this useeffect does not run
-        defeated===bossSpawn?(() => {spawnMonster(bossArray); setBossSpawn(bossSpawn+5)})() :
-        spawnMonster(monsterArray)
-    }, [monster.randomNum])
     function attack() {
         setButtonDisable(true)
-        if (monster.isAlive) {
-            setFightAnimation(1)
-        }
         setTimeout(() => setButtonDisable(false), 1000)
         monster.isAlive?
         setMonster(prevMonster => ({
@@ -161,12 +155,14 @@ export default function App() {
         })) :
         (() => {
             defeated===bossSpawn?
-                setMonster({
-                    randomNum: Math.floor(Math.random()*bossArray.length)
-                }) :
-                setMonster({
-                    randomNum: Math.floor(Math.random()*monsterArray.length)
-                })
+            (() => {
+                spawnMonster(bossArray, Math.floor(Math.random()*bossArray.length))
+                setBossSpawn(bossSpawn+5)
+            })()
+            :
+            (() => {
+                spawnMonster(monsterArray, Math.floor(Math.random()*monsterArray.length))
+            })()
         })()
     }
     return (
@@ -193,16 +189,14 @@ export default function App() {
             monsterIsAlive={monster.isAlive}
             currentWeapon={currentWeapon.url}
             monsterWeaponUrl={monster.weaponUrl}
-            fightAnimationEnd={()=> setFightAnimation(0)}
-            fightAnimationState={fightAnimation}
-            monsterFightAnimationEnd={() => setMonsterFightAnimation(0)}
-            monsterFightAnimationState={monsterFightAnimation}
             monsterHealth={monster.health}
             stunned={monster.stunned}
             stun={()=>setMonster(prevMonster=>({...prevMonster,stunned:true}))}
             flame={()=>setMonster(prevMonster=>({...prevMonster,health: monster.health-Spell.flame.damage
             }))}
-            unStun={() => setMonster(prevMonster=>({...prevMonster,stunned:false}))}/>}
+            unStun={()=>setMonster(prevMonster=>({...prevMonster,stunned:false}))}
+            monsterTurn={monster.monsterTurn}
+            />}
             <Monster 
             monsterHealth={monster.health}
             monsterAttack={monster.attack}
